@@ -1,24 +1,25 @@
 {
   "name": "parcel-project-template",
-  "version": "1.1.0",
-  "description": "",
+  "version": "1.0.0",
+  "description": "Setings for parcel template.",
   "main": "index.js",
-  "homepage": "https://YevheniiDoroshenko88.github.io/goit-js-hw-11",
+  "homepage": "https://github.com/YevheniiDoroshenko88/goit-js-hw-11",
   "scripts": {
     "dev": "parcel src/*.html",
     "build": "parcel build src/*.html --public-url /goit-js-hw-11/"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/goitacademy/parcel-project-template.git"
+    "url": "git+https://github.com/Boguszz/goit-js-hw-11.git"
   },
   "keywords": [],
-  "author": "Alexander Repeta <alexander.repeta@gmail.com>",
+  "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/goitacademy/parcel-project-template/issues"
+    "url": "https://github.com/Boguszz/goit-js-hw-11/issues"
   },
   "devDependencies": {
+    "handlebars": "^4.7.7",
     "parcel-bundler": "^1.12.5",
     "parcel-plugin-handlebars-precompile": "^1.0.2",
     "parcel-plugin-nuke-dist": "^1.0.1",
@@ -26,8 +27,10 @@
     "sass": "^1.32.8"
   },
   "dependencies": {
-    "axios": "^0.26.0",
-    "notiflix": "^3.2.4",
-    "simplelightbox": "^2.10.2"
+    "axios": "^0.24.0",
+    "lodash.throttle": "^4.1.1",
+    "notiflix": "^3.2.2",
+    "simplelightbox": "^2.10.1",
+    "throttle": "^1.0.3"
   }
 }
