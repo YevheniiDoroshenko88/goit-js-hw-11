@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/1.0.0/modern-normalize.min.css"
@@ -10,12 +11,9 @@
       crossorigin="anonymous"
     />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-    <title>Page title</title>
-    <link rel="stylesheet" href="./css/styles.css" />
-    
+    <title>Gallery</title>
   </head>
   <body>
-    <body>
     <div class="search-container">
       <form class="search-form" id="search-form">
         <input type="text" name="searchQuery" autocomplete="off" placeholder="Search images..." />
@@ -24,12 +22,15 @@
         </button>
       </form>
     </div>
+
     <div class="gallery-container">
       <div class="gallery"></div>
       <button type="button" class="btn-load-more is-hidden">Load more</button>
-      <a class="btn-to-top" title="Return to top"> <span class="material-icons">arrow_upward</span></a>
+      <a class="btn-to-top" title="Return to top">
+        <span class="material-icons">arrow_upward</span></a
+      >
     </div>
 
-  <script type="module" src="./index.js"></script>
+    <script src="index.js"></script>
   </body>
 </html>
