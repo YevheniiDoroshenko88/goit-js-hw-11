@@ -1,134 +1,94 @@
-import axios, { formToJSON } from "axios";
-import Notiflix, { Notify } from 'notiflix';
+import './css/styles.css';
+import debounce from 'lodash.debounce';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
-
-const refs = {
-    form: document.querySelector('.search-form'),
-    gallery: document.querySelector('.gallery'),
-    loadMore: document.querySelector('.load-more'),
-};
-
-refs.loadMore.style.display = 'none';
+import { fetchImages } from './fetch';
+const DEBOUNCE_DELAY = 300;
+let q = '';
 let page = 1;
-let isVisible = 0;
-
-refs.form.addEventListener('submit', onSearch);
-refs.loadMore.addEventListener('click', onLoadMore);
-
-function onLoadMore() { 
-    refs.loadMore.style.display = 'none';
-    page += 1;
-    const name = refs.form.querySelector('input').value.trim();
-    pixabayAPI(name, page);
-    refs.loadMore.style.display = 'flex';
+let simpleLightBox;
+const perPage = 40;
+const refs = {
+  input: document.querySelector(".input"),
+  form: document.querySelector("#search-form"),
+  div: document.querySelector(".gallery"),
+  button: document.querySelector(".btn-load-more")
 }
+function plavno() {
+  const { height: cardHeight } = document
+    .querySelector(".gallery")
+    .firstElementChild.getBoundingClientRect();
 
-
-refs.form.querySelector('input');
-function onSearch(evt) { 
-    evt.preventDefault();
-    isVisible = 0;
-    refs.gallery.innerHTML = '';
-
-    const name = refs.form.querySelector('input').value.trim();
-
-    if (name !== '') {
-        pixabayAPI(name);
-    } else { 
-        refs.loadMore.style.display = 'none';
-        return Notify.failure(
-            'Sorry, there are no images matching your search query. Please try again.'
-        );
-    }
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: "smooth",
+  });
 }
-
-async function pixabayAPI(name, page) { 
-    const BASE_URL = 'https://pixabay.com/api/';
-
-    const options = {
-        params: { 
-            key: '31760233-da36889e6feb9e4679dfb5488',
-            q: name, 
-            image_type: 'photo',
-            orientation: 'horizontal',
-            safesearch: 'true',
-            page: page,
-            per_page: 40,
-        },
-    };
-
-    try {
-        const response = await axios.get(BASE_URL, options);
-        isVisible += response.data.hits.length;
-
-        message(
-            response.data.hits.length,
-            isVisible,
-            options.params.per_page,
-            response.data.total
-        );
-
-        createMarkup(response.data);
-    } catch (error) { 
-        console.log(error);
-    }
+function createGalleryMarkup(data) {
+  return data.reduce((acc, { webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => `${acc}<div class="photo-card">
+  <a class="gallery__item" href="${largeImageURL}"><img src="${webformatURL}" alt="${tags}" loading="lazy" width="200" height="100" /></a>
+  <div class="info">
+    <p class="info-item">
+      <b>Likes</b>=${likes}
+    </p>
+    <p class="info-item">
+      <b>Views</b>=${views}
+    </p>
+    <p class="info-item">
+      <b>Comments</b>=${comments}
+    </p>
+    <p class="info-item">
+      <b>Downloads</b>=${downloads}
+    </p>
+  </div>
+</div>`, "")
 }
-
-const simpleLightBox = new SimpleLightbox('.gallery a', {
-  captionsData: 'alt',
-  captionDelay: 250,
-});
-
-
-function createMarkup(arr) { 
-    const markup = arr.hits.map(item =>
-        `<a class="photo-link" href="${item.largeImageURL}">
-            <div class="photo-card">
-            <div class="photo">
-            <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy"/>
-            </div>
-                    <div class="info">
-                        <p class="info-item">
-                            <b>Likes</b>
-                            ${item.likes}
-                        </p>
-                        <p class="info-item">
-                            <b>Views</b>
-                            ${item.views}
-                        </p>
-                        <p class="info-item">
-                            <b>Comments</b>
-                            ${item.comments}
-                        </p>
-                        <p class="info-item">
-                            <b>Downloads</b>
-                            ${item.downloads}
-                        </p>
-                    </div>
-            </div>
-        </a>`).join('');
-    refs.gallery.insertAdjacentHTML('beforeend', markup);
-    simpleLightBox.refresh();
+function onError() {
+  return 0;
 }
+function addMarkup(data) {
 
+  return refs.div.insertAdjacentHTML("beforeend", createGalleryMarkup(data));
 
-function message(length, isVisible, per_page, total) { 
-    if (!length) { 
-        Notify.failure(
-            'Sorry, there are no images matching your search query. Please try again.'
-        );
-    }
-    if (length >= isVisible) { 
-        refs.loadMore.style.display = 'flex';
-        Notify.info(
-            `Hooray! We found ${total} images.`
-        );
-    }
-    if (isVisible >= total) { 
-        Notify.info(
-            "We're sorry, but you've reached the end of search results."
-        );
-        refs.loadMore.style.display = 'none';
-    }
 }
+function onSubmit(e) {
+  page = 1;
+  e.preventDefault();
+  q = e.currentTarget.searchQuery.value.trim();
+  if (!q) return;
+  refs.div.innerHTML = "";
+  fetchImages(q, page, perPage).then(({ data }) => {
+    if (data.totalHits === 0) {
+      refs.button.classList.add("is-hidden")
+      refs.div.innerHTML = "";
+      return Notify.failure("Sorry, there are no images matching your search query. Please try again.");
+    }
+    if (data.totalHits > perPage) {
+      refs.button.classList.remove("is-hidden")
+      refs.button.textContent = "Load More";
+    }
+    if (data.totalHits < perPage && data.totalHits != 0) {
+      refs.button.classList.add("is-hidden")
+    }
+    addMarkup(data.hits);
+    simpleLightBox = new SimpleLightbox('.gallery a').refresh();
+    Notify.success(`Hooray! We found ${data.totalHits} images.`);
+  }).catch(onError);
+}
+function onLoadMore(e) {
+  page++;
+  simpleLightBox.destroy();
+  fetchImages(q, page, perPage).then(({ data }) => {
+    addMarkup(data.hits);
+    simpleLightBox = new SimpleLightbox('.gallery a').refresh();
+    const totalPages = Math.ceil(data.totalHits / perPage);
+    if (page > totalPages) {
+      refs.button.classList.add("is-hidden")
+      return Notify.failure("We're sorry, but you've reached the end of search results.")
+    }
+    plavno();
+  }).catch(onError);
+}
+refs.form.addEventListener("submit", onSubmit);
+refs.button.addEventListener("click", onLoadMore);
